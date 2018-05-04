@@ -102,7 +102,7 @@ function s_print_unescaped(io, str::AbstractString, flg::Bool=false)
                     throw_arg_err(string("\\", chr, " only supported in legacy mode (i.e. ",
                                          "F\"...\" or PR\"...\""))
                 end
-            elseif chr in parse_chr
+            elseif haskey(parse_chr, chr)
                 pos = parse_chr[chr](io, str, pos, chr)
             else
                 chr = (chr == '0' ? '\0' :
@@ -207,7 +207,7 @@ function s_interp_parse_vec(flg::Bool, s::AbstractString, unescape::Function)
                     throw(_ParseError("Incomplete expression"))
                 push!(sx, esc(ex))
                 i = j
-            elseif c in interpolate
+            elseif haskey(interpolate, c)
                 i = j = interpolate[c](sx, s, unescape, i, j, k)
             elseif flg && c == '$'
                 is_empty(s[i:j-1]) ||
