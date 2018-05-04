@@ -167,8 +167,7 @@ function s_print_escaped(io, str::AbstractString, esc::Union{AbstractString, Abs
         chr == '\\'         ? print(io, "\\\\") :
         chr in esc          ? print(io, '\\', chr) :
         '\a' <= chr <= '\r' ? print(io, '\\', "abtnvfr"[Int(chr)-6]) :
-        is_printable(chr)   ? print(io, chr) :
-                              print(io, "\\u{", outhex(chr%UInt32), "}")
+        is_printable(chr)   ? print(io, chr) : print(io, "\\u{", Strs.outhex(chr%UInt32), "}")
     end
 end
 
