@@ -9,25 +9,27 @@ Licensed under MIT License, see LICENSE.md
 """
 module StrLiterals
 
-using Strs
+using APITools
+@api init
 
-export @f_str, @F_str, @pr_str, @PR_str, @pr, @PR
+@api extend StrAPI, CharSetEncodings, Chars, StrBase
+
+@api develop s_parse_unicode, s_print_unescaped_legacy, s_print_unescaped, s_parse_legacy,
+             s_unescape_string, s_print_escaped, s_escape_string, s_print, s_interp_parse,
+             s_interp_parse_vec, s_unescape_str, s_unescape_legacy
+
+@eval @api define_public $(Symbol("@f_str")), $(Symbol("@pr_str")),
+                         $(Symbol("@F_str")), $(Symbol("@PR_str"))
 
 const parse_chr   = Dict{Char, Function}()
 const interpolate = Dict{Char, Function}()
 
-@static if VERSION < v"0.7.0-DEV"
-    const _parse = parse
-    const _ParseError = ParseError
-    _sprint(f, s) = sprint(endof(s), f, s)
-    _sprint(f, s, c) = sprint(endof(s), f, s, c)
-    const AbstractChar = Strs.AbsChar
-else
-    const _parse = Meta.parse
-    const _ParseError = Base.Meta.ParseError
-    _sprint(f, s) = sprint(f, s; sizehint=lastindex(s))
-    _sprint(f, s, c) = sprint(f, s, c; sizehint=lastindex(s))
-end
+@api define_develop parse_chr, interpolate
+@api define_develop throw_arg_err, hexerr, parse_error, check_expr, check_done
+
+incomplete_expr_error() = parse_error("Incomplete expression")
+check_expr(ex) = isa(ex, Expr) && (ex.head === :continue) && incomplete_expr_error()
+check_done(str, pos, msg) = done(str, pos) && parse_error(msg)
 
 """
 String macro with more Swift-like syntax, plus support for emojis and LaTeX names
@@ -158,7 +160,7 @@ end
 
 s_unescape_string(str::AbstractString) = _sprint(s_print_unescaped, str)
 
-function s_print_escaped(io, str::AbstractString, esc::Union{AbstractString, AbstractChar})
+function s_print_escaped(io, str::AbstractString, esc::Union{AbstractString, AbsChar})
     pos = start(str)
     while !done(str, pos)
         chr, pos = next(str, pos)
@@ -167,7 +169,7 @@ function s_print_escaped(io, str::AbstractString, esc::Union{AbstractString, Abs
         chr == '\\'         ? print(io, "\\\\") :
         chr in esc          ? print(io, '\\', chr) :
         '\a' <= chr <= '\r' ? print(io, '\\', "abtnvfr"[Int(chr)-6]) :
-        is_printable(chr)   ? print(io, chr) : print(io, "\\u{", Strs.outhex(chr%UInt32), "}")
+        is_printable(chr)   ? print(io, chr) : print(io, "\\u{", StrBase.outhex(chr%UInt32), "}")
     end
 end
 
@@ -201,9 +203,8 @@ function s_interp_parse_vec(flg::Bool, s::AbstractString, unescape::Function)
                 # Handle interpolation
                 is_empty(s[i:j-1]) ||
                     push!(sx, unescape(s[i:j-1]))
-                ex, j = _parse(s, k, greedy=false)
-                isa(ex, Expr) && (ex.head === :continue) &&
-                    throw(_ParseError("Incomplete expression"))
+                ex, j = parse(Expr, s, k, greedy=false)
+                check_expr(ex)
                 push!(sx, esc(ex))
                 i = j
             elseif haskey(interpolate, c)
@@ -220,9 +221,8 @@ function s_interp_parse_vec(flg::Bool, s::AbstractString, unescape::Function)
         elseif flg && c == '$'
             is_empty(s[i:j-1]) ||
                 push!(sx, unescape(s[i:j-1]))
-            ex, j = _parse(s, k, greedy=false)
-            isa(ex,Expr) && ex.head === :continue &&
-                throw(_ParseError("incomplete expression"))
+            ex, j = parse(Expr, s, k, greedy=false)
+            check_expr(ex)
             push!(sx, esc(ex))
             i = j
         else
@@ -247,5 +247,7 @@ s_interp_parse(flg::Bool, ::Type{S}, str::AbstractString, u::Function) where {S<
     s_interp_parse(flg, S, str, u, print)
 s_interp_parse(flg::Bool,  ::Type{S}, str::AbstractString) where {S<:AbstractString} =
     s_interp_parse(flg, S, str, flg ? s_unescape_legacy : s_unescape_str)
+
+@api freeze
 
 end # module StrLiterals

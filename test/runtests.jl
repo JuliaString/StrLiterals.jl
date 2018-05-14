@@ -1,13 +1,13 @@
 # License is MIT: LICENSE.md
 
-const V6_COMPAT = VERSION < v"0.7.0-DEV"
+using APITools
+
+@api test StrAPI, CharSetEncodings, Chars, StrBase, StrLiterals
 
 @static V6_COMPAT ? (using Base.Test) : (using Test)
+
 eval_parse(s) = eval((@static V6_COMPAT ? parse : Meta.parse)(s))
 const ErrorType = @static V6_COMPAT ? ArgumentError : LoadError
-
-using Strs, StrLiterals
-using StrLiterals: s_escape_string, s_unescape_string, s_print_escaped, s_print_unescaped
 
 ts(io) = String(take!(io))
 
