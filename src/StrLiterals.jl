@@ -10,7 +10,6 @@ Licensed under MIT License, see LICENSE.md
 module StrLiterals
 
 using APITools
-@api init
 
 @api extend StrAPI, CharSetEncodings, Chars, StrBase
 
@@ -29,7 +28,7 @@ const interpolate = Dict{Char, Function}()
 
 incomplete_expr_error() = parse_error("Incomplete expression")
 check_expr(ex) = isa(ex, Expr) && (ex.head === :continue) && incomplete_expr_error()
-check_done(str, pos, msg) = done(str, pos) && parse_error(msg)
+check_done(str, pos, msg) = str_done(str, pos) && parse_error(msg)
 
 """
 String macro with more Swift-like syntax, plus support for emojis and LaTeX names
@@ -55,22 +54,22 @@ throw_arg_err(msg, val) = throw_arg_err(string(msg, repr(val)))
 Handle Unicode character constant, of form \\u{<hexdigits>}
 """
 function s_parse_unicode(io, str,  pos)
-    done(str, pos) && throw_arg_err("Incomplete \\u{...} in ", str)
-    chr, pos = next(str, pos)
+    str_done(str, pos) && throw_arg_err("Incomplete \\u{...} in ", str)
+    chr, pos = str_next(str, pos)
     chr != '{' && throw_arg_err("\\u missing opening { in ", str)
-    done(str, pos) && throw_arg_err("Incomplete \\u{...} in ", str)
+    str_done(str, pos) && throw_arg_err("Incomplete \\u{...} in ", str)
     beg = pos
-    chr, pos = next(str, pos)
+    chr, pos = str_next(str, pos)
     num::UInt32 = 0
     cnt = 0
     while chr != '}'
-        done(str, pos) && throw_arg_err("\\u{ missing closing } in ", str)
+        str_done(str, pos) && throw_arg_err("\\u{ missing closing } in ", str)
         (cnt += 1) > 6 && throw_arg_err("Unicode constant too long in ", str)
         num = num<<4 + chr - ('0' <= chr <= '9' ? '0' :
                               'a' <= chr <= 'f' ? 'a' - 10 :
                               'A' <= chr <= 'F' ? 'A' - 10 :
                               throw_arg_err("\\u missing closing } in ", str))
-        chr, pos = next(str, pos)
+        chr, pos = str_next(str, pos)
     end
     cnt == 0 && throw_arg_err("\\u{} has no hex digits in ", str)
     ((0x0d800 <= num <= 0x0dfff) || num > 0x10ffff) &&
@@ -90,11 +89,11 @@ Based on code resurrected from Julia base:
 https://github.com/JuliaLang/julia/blob/deab8eabd7089e2699a8f3a9598177b62cbb1733/base/string.jl
 """
 function s_print_unescaped(io, str::AbstractString, flg::Bool=false)
-    pos = start(str)
-    while !done(str, pos)
-        chr, pos = next(str, pos)
-        if !done(str, pos) && chr == '\\'
-            chr, pos = next(str, pos)
+    pos = 1
+    while !str_done(str, pos)
+        chr, pos = str_next(str, pos)
+        if !str_done(str, pos) && chr == '\\'
+            chr, pos = str_next(str, pos)
             if (chr == 'u' ||  chr == 'U' || chr == 'x')
                 if flg
                     pos = s_parse_legacy(io, str, pos, chr)
@@ -132,7 +131,7 @@ end
 hexerr(chr) = throw_arg_err("\\$chr used with no following hex digits")
 
 function s_parse_legacy(io, str, pos, chr)
-    done(str, pos) && hexerr(chr)
+    str_done(str, pos) && hexerr(chr)
     beg = pos
     max = chr == 'x' ? 2 : chr == 'u' ? 4 : 8
     if str[pos] == '{'
@@ -140,8 +139,8 @@ function s_parse_legacy(io, str, pos, chr)
         return s_parse_unicode(io, str, pos)
     end
     num = cnt = 0
-    while (cnt += 1) <= max && !done(str, pos)
-        chr, nxt = next(str, pos)
+    while (cnt += 1) <= max && !str_done(str, pos)
+        chr, nxt = str_next(str, pos)
         num = '0' <= chr <= '9' ? num << 4 + chr - '0' :
               'a' <= chr <= 'f' ? num << 4 + chr - 'a' + 10 :
               'A' <= chr <= 'F' ? num << 4 + chr - 'A' + 10 : break
@@ -161,9 +160,9 @@ end
 s_unescape_string(str::AbstractString) = _sprint(s_print_unescaped, str)
 
 function s_print_escaped(io, str::AbstractString, esc::Union{AbstractString, AbsChar})
-    pos = start(str)
-    while !done(str, pos)
-        chr, pos = next(str, pos)
+    pos = 1
+    while !str_done(str, pos)
+        chr, pos = str_next(str, pos)
         chr == '\0'         ? print(io, "\\0") :
         chr == '\e'         ? print(io, "\\e") :
         chr == '\\'         ? print(io, "\\\\") :
@@ -194,10 +193,10 @@ end
 
 function s_interp_parse_vec(flg::Bool, s::AbstractString, unescape::Function)
     sx = []
-    i = j = start(s)
-    while !done(s, j)
-        c, k = next(s, j)
-        if c == '\\' && !done(s, k)
+    i = j = 1
+    while !str_done(s, j)
+        c, k = str_next(s, j)
+        if c == '\\' && !str_done(s, k)
             c = s[k]
             if c == '('
                 # Handle interpolation
@@ -214,7 +213,7 @@ function s_interp_parse_vec(flg::Bool, s::AbstractString, unescape::Function)
                     push!(sx, unescape(s[i:j-1]))
                 i = k
                 # Move past \\, c should point to '$'
-                c, j = next(s, k)
+                c, j = str_next(s, k)
             else
                 j = k
             end
