@@ -13,18 +13,17 @@ using APITools
 
 @api extend StrAPI, CharSetEncodings, Chars, StrBase
 
-@api develop s_parse_unicode, s_print_unescaped_legacy, s_print_unescaped, s_parse_legacy,
-             s_unescape_string, s_print_escaped, s_escape_string, s_print, s_interp_parse,
-             s_interp_parse_vec, s_unescape_str, s_unescape_legacy
+@api develop! s_parse_unicode, s_print_unescaped_legacy, s_print_unescaped, s_parse_legacy,
+              s_unescape_string, s_print_escaped, s_escape_string, s_print, s_interp_parse,
+              s_interp_parse_vec, s_unescape_str, s_unescape_legacy
 
-@eval @api define_public $(Symbol("@f_str")), $(Symbol("@pr_str")),
-                         $(Symbol("@F_str")), $(Symbol("@PR_str"))
+@eval @api public $(Symbol("@f_str")), $(Symbol("@pr_str")),
+                  $(Symbol("@F_str")), $(Symbol("@PR_str"))
 
 const parse_chr   = Dict{Char, Function}()
 const interpolate = Dict{Char, Function}()
 
-@api define_develop parse_chr, interpolate
-@api define_develop throw_arg_err, hexerr, parse_error, check_expr, check_done
+@api develop throw_arg_err, hexerr, parse_error, check_expr, check_done
 
 incomplete_expr_error() = parse_error("Incomplete expression")
 check_expr(ex) = isa(ex, Expr) && (ex.head === :continue) && incomplete_expr_error()
