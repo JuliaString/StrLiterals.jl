@@ -4,9 +4,12 @@ using APITools
 
 @api test StrAPI, CharSetEncodings, Chars, StrBase, StrLiterals
 
-@static V6_COMPAT ? (using Base.Test) : (using Test)
+@static if V6_COMPAT
+    eval_parse(s) = eval(parse(s))
+else
+    eval_parse(s) = Core.eval(@__MODULE__, Meta.parse(Expr, s))
+end
 
-eval_parse(s) = eval((@static V6_COMPAT ? parse : Meta.parse)(s))
 const ErrorType = @static V6_COMPAT ? ArgumentError : LoadError
 
 ts(io) = String(take!(io))
@@ -41,10 +44,10 @@ end
 end
 @testset "Invalid quoted characters" begin
     for ch in "cdghijklmopqsuwxy"
-        @test_throws ErrorType eval_parse(string("f\"\\", ch, '"'))
+        @test_throws ErrorType eval_parse("f\"\\$ch\"")
     end
     for ch in 'A':'Z'
-        @test_throws ErrorType eval_parse(string("f\"\\", ch, '"'))
+        @test_throws ErrorType eval_parse("f\"\\$ch\"")
     end
 end
 
