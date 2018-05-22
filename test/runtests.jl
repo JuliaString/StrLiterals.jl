@@ -7,7 +7,7 @@ using ModuleInterfaceTools
 @static if V6_COMPAT
     eval_parse(s) = eval(parse(s))
 else
-    eval_parse(s) = Core.eval(@__MODULE__, Meta.parse(Expr, s))
+    eval_parse(s) = Core.eval(@__MODULE__, Meta.parse(s))
 end
 
 const ErrorType = @static V6_COMPAT ? ArgumentError : LoadError
