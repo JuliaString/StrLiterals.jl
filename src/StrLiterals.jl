@@ -9,7 +9,7 @@ Licensed under MIT License, see LICENSE.md
 """
 module StrLiterals
 
-using APITools
+using ModuleInterfaceTools
 
 @api extend StrAPI, CharSetEncodings, Chars, StrBase
 

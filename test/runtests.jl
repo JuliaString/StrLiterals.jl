@@ -1,6 +1,6 @@
 # License is MIT: LICENSE.md
 
-using APITools
+using ModuleInterfaceTools
 
 @api test StrAPI, CharSetEncodings, Chars, StrBase, StrLiterals
 
