@@ -11,7 +11,7 @@ module StrLiterals
 
 using ModuleInterfaceTools
 
-@api extend StrAPI, CharSetEncodings, Chars, StrBase
+@api extend StrAPI, CharSetEncodings, ChrBase, StrBase
 
 @api develop! s_parse_unicode, s_print_unescaped_legacy, s_print_unescaped, s_parse_legacy,
               s_unescape_string, s_print_escaped, s_escape_string, s_print, s_interp_parse,

@@ -2,7 +2,7 @@
 
 using ModuleInterfaceTools
 
-@api test StrAPI, CharSetEncodings, Chars, StrBase, StrLiterals
+@api test StrAPI, CharSetEncodings, ChrBase, StrBase, StrLiterals
 
 @static if V6_COMPAT
     eval_parse(s) = eval(parse(s))

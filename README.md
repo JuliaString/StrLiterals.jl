@@ -1,10 +1,9 @@
 # StrLiterals
 
-[![Build Status](https://travis-ci.org/JuliaString/StrLiterals.jl.svg?branch=master)](https://travis-ci.org/JuliaString/StrLiterals.jl)
-
-[![Coverage Status](https://coveralls.io/repos/github/JuliaString/StrLiterals.jl/badge.svg?branch=master)](https://coveralls.io/github/JuliaString/StrLiterals.jl?branch=master)
-
-[![codecov.io](http://codecov.io/github/JuliaString/StrLiterals.jl/coverage.svg?branch=master)](http://codecov.io/github/JuliaString/StrLiterals.jl?branch=master)
+| **Package Status** | **Package Evaluator** | **Coverage**      |
+|:------------------:|:---------------------:|:-----------------:|
+| [![License](http://img.shields.io/badge/license-MIT-brightgreen.svg?style=flat)](LICENSE.md) [![Build Status](https://travis-ci.org/JuliaString/StrLiterals.jl.svg?branch=master)](https://travis-ci.org/JuliaString/StrLiterals.jl) | [![StrLiterals](http://pkg.julialang.org/badges/StrLiterals_0.6.svg)](http://pkg.julialang.org/?pkg=StrLiterals) [![StrLiterals](http://pkg.julialang.org/badges/StrLiterals_0.7.svg)](http://pkg.julialang.org/?pkg=StrLiterals) | [![Coverage Status](https://coveralls.io/repos/github/JuliaString/StrLiterals.jl/badge.svg?branch=master)](https://coveralls.io/github/JuliaString/StrLiterals.jl?branch=master)
+[![codecov.io](http://codecov.io/github/JuliaString/StrLiterals.jl/coverage.svg?branch=master)](http://codecov.io/github/JuliaString/StrLiterals.jl?branch=master) |
 
 The StrLiterals package is an attempt to bring a cleaner string literal syntax to Julia, as well as having an easier way of producing formatted strings, borrowing from both Python and C formatted printing syntax.  It also adds support for using LaTex, Emoji, HTML, or Unicode entity names that are looked up at compile-time.
 This builds on the previous work in StringUtils and StringLiterals, but is based on the new Strs.jl package
