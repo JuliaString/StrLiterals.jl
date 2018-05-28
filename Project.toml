@@ -5,4 +5,3 @@ keywords = ["Strings", "Literals"]
 license = "MIT"
 uuid = "627f7b36-cfa1-4420-8f93-de9d4fe56cdc"
 repo = "https://github.com/JuliaString/StrLiterals.jl.git"
-version = "0.1.1"
