@@ -4,6 +4,12 @@ authors = ["ScottPJones <scottjones@alum.mit.edu>"]
 keywords = ["Strings", "Literals"]
 license = "MIT"
 uuid = "627f7b36-cfa1-4420-8f93-de9d4fe56cdc"
-repo-rev = ""
-repo-url = "https://github.com/JuliaString/StrLiterals.jl.git"
 version = "0.1.0"
+
+[deps]
+ModuleInterfaceTools = "5cb8414e-7aab-5a03-a681-351269c074bf" # x13gh7y6id3fbmke
+MurmurHash3          = "f0d41675-b40b-4ac0-9c24-1938651d8492" # q55ln7mp20ph5cko
+StrAPI               = "69e7dfc3-c4d0-5e14-8d95-d6042a05b383" # pyw9o1y3wywo95tt
+CharSetEncodings     = "cb9422de-a9d8-5b68-86db-ff05833ab307" # 08ylxl46exltiemd
+ChrBase              = "40048718-5f69-11e8-3be1-2f493f2f747a" # lrdfni7si4o797fr
+StrBase              = "9ae48233-fac8-48c3-9111-9059e0a096a8" # 2v12uwlr0ueale6n
