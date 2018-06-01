@@ -9,8 +9,8 @@ environment:
 ## (tests will run but not make your overall status red)
 matrix:
   allow_failures:
-#  - JULIA_URL: "https://julialangnightlies-s3.julialang.org/bin/winnt/x86/julia-latest-win32.exe"
- - JULIA_URL: "https://julialangnightlies-s3.julialang.org/bin/winnt/x64/julia-latest-win64.exe"
+   - JULIA_URL: "https://julialangnightlies-s3.julialang.org/bin/winnt/x86/julia-latest-win32.exe"
+   - JULIA_URL: "https://julialangnightlies-s3.julialang.org/bin/winnt/x64/julia-latest-win64.exe"
 branches:
   only:
     - master
@@ -40,7 +40,13 @@ build_script:
 # Need to convert from shallow to complete for Pkg.clone to work
   - IF EXIST .git\shallow (git fetch --unshallow)
   - C:\projects\julia\bin\julia -e "VERSION < v\"0.7.0-DEV\" || (using InteractiveUtils);
-      versioninfo(); VERSION < v\"0.7.0-DEV.5183\" && Pkg.clone(pwd(), \"StrLiterals\")"
+      versioninfo(); pkg = \"StrLiterals\";
+      la = (\"ModuleInterfaceTools\", \"StrAPI\", \"CharSetEncodings\", \"ChrBase\", \"MurmurHash3\");
+      if VERSION < v\\"0.7.0-DEV.5183\\"
+         for n in la; Pkg.add(n); end;
+         Pkg.clone(\"https://github.com/JuliaString/StrBase.jl\", \"StrBase\");
+         Pkg.clone(pwd(), pkg);
+      else; Pkg.up(); end"
 
 test_script:
-  - C:\projects\julia\bin\julia -e "VERSION < v\"0.7.0-DEV\" || (using Pkg); Pkg.test(\"StrLiterals\")"
+  - C:\projects\julia\bin\julia -e "Pkg.test(\"StrLiterals\")"
