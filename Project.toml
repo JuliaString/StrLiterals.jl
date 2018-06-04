@@ -7,6 +7,8 @@ uuid = "627f7b36-cfa1-4420-8f93-de9d4fe56cdc"
 
 [deps]
 Pkg = "44cfe95a-1eb2-52ea-b672-e2afdf69b78f"
-StrBase = "9ae48233-fac8-48c3-9111-9059e0a096a8"
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 Unicode = "4ec0a83e-493e-50e2-b9ac-8f72acf5a8f5"
+
+ModuleInterfaceTools = "5cb8414e-7aab-5a03-a681-351269c074bf"
+StrBase = "e79e7a6a-7bb1-5a4d-9d64-da657b06f53a" # 2v12uwlr0ueale6n
