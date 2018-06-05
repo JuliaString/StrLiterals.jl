@@ -194,7 +194,7 @@ end
 function s_interp_parse(flg::Bool, ::Type{S}, str::AbstractString,
                         unescape::Function, p::Function) where {S<:SymStr}
     sx = s_interp_parse_vec(flg, str, unescape)
-    ((length(sx) == 1 && isa(sx[1], String)) ? sx[1]
+    ((length(sx) == 1 && isa(sx[1], String)) ? S(sx[1])
      : Expr(:call, :convert, S, Expr(:call, :sprint, p, sx...)))
 end
 
