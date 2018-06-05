@@ -18,16 +18,24 @@ using ModuleInterfaceTools
               s_interp_parse_vec, s_unescape_str, s_unescape_legacy
 
 @eval @api public $(Symbol("@f_str")), $(Symbol("@pr_str")),
-                  $(Symbol("@F_str")), $(Symbol("@PR_str"))
+                  $(Symbol("@F_str")), $(Symbol("@PR_str")), $(Symbol("@sym_str"))
+
 
 const parse_chr   = Dict{Char, Function}()
 const interpolate = Dict{Char, Function}()
+
+const SymStr = Union{Symbol, AbstractString}
 
 @api develop throw_arg_err, hexerr, parse_error, check_expr, check_done
 
 incomplete_expr_error() = parse_error("Incomplete expression")
 check_expr(ex) = isa(ex, Expr) && (ex.head === :continue) && incomplete_expr_error()
 check_done(str, pos, msg) = str_done(str, pos) && parse_error(msg)
+
+"""
+Create a symbol from a string (that allows for interpolation and escape sequences)
+"""
+macro sym_str(str) ; s_interp_parse(false, Symbol, str) ; end
 
 """
 String macro with more Swift-like syntax, plus support for emojis and LaTeX names
@@ -184,7 +192,7 @@ function s_print(flg::Bool, str::AbstractString, unescape::Function)
 end
 
 function s_interp_parse(flg::Bool, ::Type{S}, str::AbstractString,
-                        unescape::Function, p::Function) where {S<:AbstractString}
+                        unescape::Function, p::Function) where {S<:SymStr}
     sx = s_interp_parse_vec(flg, str, unescape)
     ((length(sx) == 1 && isa(sx[1], String)) ? sx[1]
      : Expr(:call, :convert, S, Expr(:call, :sprint, p, sx...)))
@@ -241,9 +249,9 @@ function s_unescape_legacy(str)
     is_valid(String, str) ? str : throw_arg_err("Invalid UTF-8 sequence")
 end
 
-s_interp_parse(flg::Bool, ::Type{S}, str::AbstractString, u::Function) where {S<:AbstractString} =
+s_interp_parse(flg::Bool, ::Type{S}, str::AbstractString, u::Function) where {S<:SymStr} =
     s_interp_parse(flg, S, str, u, print)
-s_interp_parse(flg::Bool,  ::Type{S}, str::AbstractString) where {S<:AbstractString} =
+s_interp_parse(flg::Bool,  ::Type{S}, str::AbstractString) where {S<:SymStr} =
     s_interp_parse(flg, S, str, flg ? s_unescape_legacy : s_unescape_str)
 
 @api freeze

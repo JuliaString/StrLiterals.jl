@@ -18,9 +18,9 @@ matrix:
     - julia: nightly
 
 # uncomment the following lines to override the default test script
-#script:
-#  - if [[ -a .git/shallow ]]; then git fetch --unshallow; fi
-#  - julia -e 'if VERSION < v"0.7.0-DEV.5183"; Pkg.clone(pwd()); else; using Pkg; end; Pkg.test("StrLiterals"; coverage=true)'
+script:
+  - if [[ -a .git/shallow ]]; then git fetch --unshallow; fi
+  - julia -e 'if VERSION < v"0.7.0-DEV.5183"; Pkg.clone(pwd()); else; using Pkg; for n in ("ModuleInterfaceTools", "MurmurHash3", "StrAPI", "CharSetEncodings", "ChrBase"); Pkg.add("https://github.com/JuliaString/$n.jl.git"); end; end; Pkg.test("StrLiterals"; coverage=true)'
 
 after_success:
   # push coverage results to Coveralls
