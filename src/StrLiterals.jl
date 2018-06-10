@@ -11,18 +11,15 @@ module StrLiterals
 
 using ModuleInterfaceTools
 
-@api extend StrAPI, CharSetEncodings, ChrBase, StrBase
-
 @api develop! s_parse_unicode, s_print_unescaped_legacy, s_print_unescaped, s_parse_legacy,
               s_unescape_string, s_print_escaped, s_escape_string, s_print, s_interp_parse,
               s_interp_parse_vec, s_unescape_str, s_unescape_legacy
 
-@eval @api public $(Symbol("@f_str")), $(Symbol("@pr_str")),
-                  $(Symbol("@F_str")), $(Symbol("@PR_str")), $(Symbol("@sym_str"))
-
+@api public "@f_str", "@pr_str", "@F_str", "@PR_str", "@sym_str"
 
 const parse_chr   = Dict{Char, Function}()
 const interpolate = Dict{Char, Function}()
+const string_type = Ref(String)
 
 const SymStr = Union{Symbol, AbstractString}
 
@@ -35,18 +32,21 @@ check_done(str, pos, msg) = str_done(str, pos) && parse_error(msg)
 """
 Create a symbol from a string (that allows for interpolation and escape sequences)
 """
-macro sym_str(str) ; s_interp_parse(false, Symbol, str) ; end
+macro sym_str(str) ; QuoteNode(s_interp_parse(false, Symbol, str)) ; end
 
 """
 String macro with more Swift-like syntax, plus support for emojis and LaTeX names
 """
-macro f_str(str) ; s_interp_parse(false, UniStr, str) ; end
-macro f_str(str, args...) ; for v in args ; dump(v) end ; s_interp_parse(false, UniStr, str) ; end
+macro f_str(str) ; s_interp_parse(false, string_type, str) ; end
+macro f_str(str, args...)
+    for v in args ; dump(v) end
+    s_interp_parse(false, string_type, str)
+end
 
 """
 String macro with more Swift-like syntax, plus support for emojis and LaTeX names, also legacy
 """
-macro F_str(str) ; s_interp_parse(true, UniStr, str) ; end
+macro F_str(str) ; s_interp_parse(true, string_type, str) ; end
 
 """
 String macros that calls print directly
