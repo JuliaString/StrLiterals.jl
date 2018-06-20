@@ -11,66 +11,72 @@ module StrLiterals
 
 using ModuleInterfaceTools
 
-@api develop! s_parse_unicode, s_print_unescaped_legacy, s_print_unescaped, s_parse_legacy,
-              s_unescape_string, s_print_escaped, s_escape_string, s_print, s_interp_parse,
-              s_interp_parse_vec, s_unescape_str, s_unescape_legacy
+@api develop! interpolated_parse, interpolated_parse_vec, s_parse_unicode, s_parse_legacy, 
+              s_print_unescaped_legacy, s_print_unescaped, s_print_escaped, s_print,
+              s_escape_string, s_unescape_string, s_unescape_str, s_unescape_legacy
 
 @api public "@f_str", "@pr_str", "@F_str", "@PR_str", "@sym_str"
 
+const AbsChar = @static isdefined(Base, :AbstractChar) ? AbstractChar : Char
+
 const parse_chr   = Dict{Char, Function}()
 const interpolate = Dict{Char, Function}()
-const string_type = Ref(String)
+const string_type = Ref{Any}(String)
 
 const SymStr = Union{Symbol, AbstractString}
 
 @api develop throw_arg_err, hexerr, parse_error, check_expr, check_done
 
+str_done(str::AbstractString, pos::Integer) =
+    @static V6_COMPAT ? done(str, pos) : (pos > ncodeunits(str))
+
+parse_error(s) = throw(@static V6_COMPAT ? ParseError(s) : Base.Meta.ParseError(s))
 incomplete_expr_error() = parse_error("Incomplete expression")
 check_expr(ex) = isa(ex, Expr) && (ex.head === :continue) && incomplete_expr_error()
-check_done(str, pos, msg) = str_done(str, pos) && parse_error(msg)
+check_done(str, pos, msg) = str_done(str, pos) && parse_error(string(msg, " in ", repr(str)))
 
 """
 Create a symbol from a string (that allows for interpolation and escape sequences)
 """
-macro sym_str(str) ; QuoteNode(s_interp_parse(false, Symbol, str)) ; end
+macro sym_str(str) ; QuoteNode(interpolated_parse(str, Symbol)) ; end
 
 """
 String macro with more Swift-like syntax, plus support for emojis and LaTeX names
 """
-macro f_str(str) ; s_interp_parse(false, string_type, str) ; end
+macro f_str(str) ; interpolated_parse(str, string_type) ; end
 macro f_str(str, args...)
     for v in args ; dump(v) end
-    s_interp_parse(false, string_type, str)
+    interpolated_parse(str, string_type)
 end
 
 """
 String macro with more Swift-like syntax, plus support for emojis and LaTeX names, also legacy
 """
-macro F_str(str) ; s_interp_parse(true, string_type, str) ; end
+macro F_str(str) ; interpolated_parse(str, string_type, true) ; end
 
 """
 String macros that calls print directly
 """
-macro pr_str(str) ; s_print(false, str) ; end
-macro PR_str(str) ; s_print(true, str) ; end
+macro pr_str(str) ; s_print(str, false) ; end
+macro PR_str(str) ; s_print(str, true) ; end
 
-throw_arg_err(msg) = throw(ArgumentError(msg))
-throw_arg_err(msg, val) = throw_arg_err(string(msg, repr(val)))
+throw_arg_err(msg)      = parse_error(msg)
+throw_arg_err(msg, val) = parse_error(string(msg, repr(val)))
 
 """
 Handle Unicode character constant, of form \\u{<hexdigits>}
 """
 function s_parse_unicode(io, str,  pos)
-    str_done(str, pos) && throw_arg_err("Incomplete \\u{...} in ", str)
+    check_done(str, pos, "Incomplete \\u{...}")
     chr, pos = str_next(str, pos)
     chr != '{' && throw_arg_err("\\u missing opening { in ", str)
-    str_done(str, pos) && throw_arg_err("Incomplete \\u{...} in ", str)
+    check_done(str, pos, "Incomplete \\u{...}")
     beg = pos
     chr, pos = str_next(str, pos)
     num::UInt32 = 0
     cnt = 0
     while chr != '}'
-        str_done(str, pos) && throw_arg_err("\\u{ missing closing } in ", str)
+        check_done(str, pos, "\\u{ missing closing }")
         (cnt += 1) > 6 && throw_arg_err("Unicode constant too long in ", str)
         num = num<<4 + chr - ('0' <= chr <= '9' ? '0' :
                               'a' <= chr <= 'f' ? 'a' - 10 :
@@ -181,24 +187,24 @@ end
 
 s_escape_string(str::AbstractString) = _sprint(s_print_escaped, str, '\"')
 
-s_print(flg::Bool, str::AbstractString) =
-    s_print(flg, str, flg ? s_unescape_str : s_unescape_legacy)
+s_print(str::AbstractString, flg::Bool=false) =
+    s_print(str, flg, flg ? s_unescape_str : s_unescape_legacy)
 
-function s_print(flg::Bool, str::AbstractString, unescape::Function)
-    sx = s_interp_parse_vec(flg, str, unescape)
+function s_print(str::AbstractString, flg::Bool, unescape::Function)
+    sx = interpolated_parse_vec(str, unescape, flg)
     (length(sx) == 1 && isa(sx[1], String)
      ? Expr(:call, :print, sx[1])
      : Expr(:call, :print, sx...))
 end
 
-function s_interp_parse(flg::Bool, ::Type{S}, str::AbstractString,
-                        unescape::Function, p::Function) where {S<:SymStr}
-    sx = s_interp_parse_vec(flg, str, unescape)
-    ((length(sx) == 1 && isa(sx[1], String)) ? S(sx[1])
-     : Expr(:call, :convert, S, Expr(:call, :sprint, p, sx...)))
+function interpolated_parse(str::AbstractString, strfun, flg::Bool, unescape::Function,
+                            p::Function)
+    sx = interpolated_parse_vec(str, unescape, flg)
+    ((length(sx) == 1 && isa(sx[1], String)) ? strfun(sx[1])
+     : Expr(:call, strfun, Expr(:call, :sprint, p, sx...)))
 end
 
-function s_interp_parse_vec(flg::Bool, s::AbstractString, unescape::Function)
+function interpolated_parse_vec(s::AbstractString, unescape::Function, flg::Bool=false)
     sx = []
     i = j = 1
     while !str_done(s, j)
@@ -249,10 +255,11 @@ function s_unescape_legacy(str)
     is_valid(String, str) ? str : throw_arg_err("Invalid UTF-8 sequence")
 end
 
-s_interp_parse(flg::Bool, ::Type{S}, str::AbstractString, u::Function) where {S<:SymStr} =
-    s_interp_parse(flg, S, str, u, print)
-s_interp_parse(flg::Bool,  ::Type{S}, str::AbstractString) where {S<:SymStr} =
-    s_interp_parse(flg, S, str, flg ? s_unescape_legacy : s_unescape_str)
+interpolated_parse(str::AbstractString, strfun, flg::Bool, u::Function) =
+    interpolated_parse(str, strfun, flg, u, print)
+
+interpolated_parse(str::AbstractString, strfun, flg::Bool=false) =
+    interpolated_parse(str, strfun, flg, flg ? s_unescape_legacy : s_unescape_str)
 
 @api freeze
 
