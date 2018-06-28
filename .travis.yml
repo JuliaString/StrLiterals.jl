@@ -20,7 +20,7 @@ git:
 # uncomment the following lines to override the default test script
 script:
   - if [[ -a .git/shallow ]]; then git fetch --unshallow; fi
-  - julia -e 'if VERSION < v"0.7.0-DEV.5183"; Pkg.clone(pwd()); else; using Pkg; Pkg.add(pwd()); end; Pkg.test("StrLiterals"; coverage=true)'
+  - julia -e 'if VERSION < v"0.7.0-DEV.5183"; Pkg.clone(pwd()); Pkg.test("StrLiterals"; coverage=true); else; using Pkg; Pkg.up(); Pkg.test(; coverage=true); end'
 
 after_success:
   # push coverage results to Coveralls
