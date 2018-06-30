@@ -11,6 +11,13 @@ module StrLiterals
 
 using ModuleInterfaceTools
 
+const NEW_ITERATE = VERSION >= v"0.7.0-DEV.5127"
+const str_next = @static NEW_ITERATE ? iterate : next
+const is_empty = isempty
+const is_valid = isvalid
+
+@api develop NEW_ITERATE, str_next
+
 @api develop! interpolated_parse, interpolated_parse_vec, s_parse_unicode, s_parse_legacy, 
               s_print_unescaped_legacy, s_print_unescaped, s_print_escaped, s_print,
               s_escape_string, s_unescape_string, s_unescape_str, s_unescape_legacy
