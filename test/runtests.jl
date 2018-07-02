@@ -10,8 +10,7 @@ else
     eval_parse(s) = Core.eval(@__MODULE__, Meta.parse(s))
 end
 
-#const ErrorType = @static V6_COMPAT ? ArgumentError : LoadError
-const ErrorType = @static V6_COMPAT ? ParseError : Base.Meta.ParseError
+const ErrorType = @static V6_COMPAT ? ParseError : LoadError
 
 ts(io) = String(take!(io))
 
