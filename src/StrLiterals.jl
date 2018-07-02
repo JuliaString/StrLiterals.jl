@@ -19,9 +19,11 @@ const is_printable = isprint
 const TypeOrFunc = Union{DataType,Function}
 
 @static if VERSION < v"0.7-"
+    outhex(v, p=1)   = hex(v, p)
     _sprint(f, s)    = sprint(endof(s), f, s)
     _sprint(f, s, c) = sprint(endof(s), f, s, c)
 else
+    outhex(v, p=1)   = string(v, base=16, pad=p)
     _sprint(f, s)    = sprint(f, s; sizehint=lastindex(s))
     _sprint(f, s, c) = sprint(f, s, c; sizehint=lastindex(s))
 end
@@ -198,7 +200,7 @@ function s_print_escaped(io, str::AbstractString, esc::Union{AbstractString, Abs
         chr == '\\'         ? print(io, "\\\\") :
         chr in esc          ? print(io, '\\', chr) :
         '\a' <= chr <= '\r' ? print(io, '\\', "abtnvfr"[Int(chr)-6]) :
-        is_printable(chr)   ? print(io, chr) : print(io, "\\u{", StrBase.outhex(chr%UInt32), "}")
+        is_printable(chr)   ? print(io, chr) : print(io, "\\u{", outhex(chr%UInt32), "}")
     end
 end
 
