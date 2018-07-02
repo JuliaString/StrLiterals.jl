@@ -15,6 +15,7 @@ const NEW_ITERATE = VERSION >= v"0.7.0-DEV.5127"
 const str_next = @static NEW_ITERATE ? iterate : next
 const is_empty = isempty
 const is_valid = isvalid
+const TypeOrFunc = Union{DataType,Function}
 
 @static if VERSION < v"0.7-"
     _sprint(f, s)    = sprint(endof(s), f, s)
@@ -36,7 +37,7 @@ const AbsChar = @static isdefined(Base, :AbstractChar) ? AbstractChar : Char
 
 const parse_chr   = Dict{Char, Function}()
 const interpolate = Dict{Char, Function}()
-const string_type = Ref{Any}(String)
+const string_type = Ref{TypeOrFunc}(String)
 
 const SymStr = Union{Symbol, AbstractString}
 
@@ -58,16 +59,16 @@ macro sym_str(str) ; QuoteNode(interpolated_parse(str, Symbol)) ; end
 """
 String macro with more Swift-like syntax, plus support for emojis and LaTeX names
 """
-macro f_str(str) ; interpolated_parse(str, string_type) ; end
+macro f_str(str) ; interpolated_parse(str, string_type[]) ; end
 macro f_str(str, args...)
     for v in args ; dump(v) end
-    interpolated_parse(str, string_type)
+    interpolated_parse(str, string_type[])
 end
 
 """
 String macro with more Swift-like syntax, plus support for emojis and LaTeX names, also legacy
 """
-macro F_str(str) ; interpolated_parse(str, string_type, true) ; end
+macro F_str(str) ; interpolated_parse(str, string_type[], true) ; end
 
 """
 String macros that calls print directly
@@ -212,7 +213,7 @@ function s_print(str::AbstractString, flg::Bool, unescape::Function)
      : Expr(:call, :print, sx...))
 end
 
-function interpolated_parse(str::AbstractString, strfun, flg::Bool, unescape::Function,
+function interpolated_parse(str::AbstractString, strfun::TypeOrFunc, flg::Bool, unescape::Function,
                             p::Function)
     sx = interpolated_parse_vec(str, unescape, flg)
     ((length(sx) == 1 && isa(sx[1], String)) ? strfun(sx[1])
@@ -270,10 +271,10 @@ function s_unescape_legacy(str)
     is_valid(String, str) ? str : throw_arg_err("Invalid UTF-8 sequence")
 end
 
-interpolated_parse(str::AbstractString, strfun, flg::Bool, u::Function) =
+interpolated_parse(str::AbstractString, strfun::TypeOrFunc, flg::Bool, u::Function) =
     interpolated_parse(str, strfun, flg, u, print)
 
-interpolated_parse(str::AbstractString, strfun, flg::Bool=false) =
+interpolated_parse(str::AbstractString, strfun::TypeOrFunc, flg::Bool=false) =
     interpolated_parse(str, strfun, flg, flg ? s_unescape_legacy : s_unescape_str)
 
 @api freeze
