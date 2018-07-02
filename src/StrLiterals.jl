@@ -178,8 +178,8 @@ function s_parse_legacy(io, str, pos, chr)
     cnt == 1 && hexerr(chr)
     if max == 2
         write(io, UInt8(num))
-    elseif is_valid(UTF32Chr, num)
-        print(io, UTF32Chr(num))
+    elseif is_valid(Char, num)
+        print(io, Char(num))
     else
         throw_arg_err("Invalid Unicode character constant ", str[beg-2:pos-1])
     end
