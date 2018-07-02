@@ -15,6 +15,7 @@ const NEW_ITERATE = VERSION >= v"0.7.0-DEV.5127"
 const str_next = @static NEW_ITERATE ? iterate : next
 const is_empty = isempty
 const is_valid = isvalid
+const is_printable = isprint
 const TypeOrFunc = Union{DataType,Function}
 
 @static if VERSION < v"0.7-"
