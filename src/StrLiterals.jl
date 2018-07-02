@@ -16,6 +16,14 @@ const str_next = @static NEW_ITERATE ? iterate : next
 const is_empty = isempty
 const is_valid = isvalid
 
+@static if VERSION < v"0.7-"
+    _sprint(f, s)    = sprint(endof(s), f, s)
+    _sprint(f, s, c) = sprint(endof(s), f, s, c)
+else
+    _sprint(f, s)    = sprint(f, s; sizehint=lastindex(s))
+    _sprint(f, s, c) = sprint(f, s, c; sizehint=lastindex(s))
+end
+
 @api develop NEW_ITERATE, str_next
 
 @api develop! interpolated_parse, interpolated_parse_vec, s_parse_unicode, s_parse_legacy, 
