@@ -35,6 +35,7 @@ end
               s_escape_string, s_unescape_string, s_unescape_str, s_unescape_legacy
 
 @api public "@f_str", "@pr_str", "@F_str", "@PR_str", "@sym_str"
+export @f_str, @pr_str, @F_str, @PR_str, @sym_str
 
 const AbsChar = @static isdefined(Base, :AbstractChar) ? AbstractChar : Char
 
