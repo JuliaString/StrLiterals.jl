@@ -121,3 +121,8 @@ end
     s_print_unescaped(io, f"' \" \\\\ \\u{7f} € 🖖 \\u{e0000}")
     @test ts(io) == "' \" \\ \x7f € 🖖 \Ue0000"
 end
+
+@testset "unicode character preceeding expressions or at the end" begin
+    @test f"π\(2*2)" == "π4"
+    @test f"π = \(2*90)°" == "π = 180°"
+end
