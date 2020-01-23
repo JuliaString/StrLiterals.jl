@@ -30,7 +30,7 @@ end
 
 @api develop NEW_ITERATE, str_next
 
-@api develop! interpolated_parse, interpolated_parse_vec, s_parse_unicode, s_parse_legacy, 
+@api develop! interpolated_parse, interpolated_parse_vec, s_parse_unicode, s_parse_legacy,
               s_print_unescaped_legacy, s_print_unescaped, s_print_escaped, s_print,
               s_escape_string, s_unescape_string, s_unescape_str, s_unescape_legacy
 
@@ -233,8 +233,8 @@ function interpolated_parse_vec(s::AbstractString, unescape::Function, flg::Bool
             c = s[k]
             if c == '('
                 # Handle interpolation
-                is_empty(s[i:j-1]) ||
-                    push!(sx, unescape(s[i:j-1]))
+                is_empty(s[i:prevind(s, j)]) ||
+                    push!(sx, unescape(s[i:prevind(s, j)]))
                 ex, j = parse(Expr, s, k, greedy=false)
                 check_expr(ex)
                 push!(sx, esc(ex))
@@ -242,8 +242,8 @@ function interpolated_parse_vec(s::AbstractString, unescape::Function, flg::Bool
             elseif haskey(interpolate, c)
                 i = j = interpolate[c](sx, s, unescape, i, j, k)
             elseif flg && c == '$'
-                is_empty(s[i:j-1]) ||
-                    push!(sx, unescape(s[i:j-1]))
+                is_empty(s[i:prevind(s, j)]) ||
+                    push!(sx, unescape(s[i:prevind(s, j)]))
                 i = k
                 # Move past \\, c should point to '$'
                 c, j = str_next(s, k)
@@ -251,8 +251,8 @@ function interpolated_parse_vec(s::AbstractString, unescape::Function, flg::Bool
                 j = k
             end
         elseif flg && c == '$'
-            is_empty(s[i:j-1]) ||
-                push!(sx, unescape(s[i:j-1]))
+            is_empty(s[i:prevind(s, j)]) ||
+                push!(sx, unescape(s[i:prevind(s, j)]))
             ex, j = parse(Expr, s, k, greedy=false)
             check_expr(ex)
             push!(sx, esc(ex))
@@ -262,7 +262,7 @@ function interpolated_parse_vec(s::AbstractString, unescape::Function, flg::Bool
         end
     end
     is_empty(s[i:end]) ||
-        push!(sx, unescape(s[i:j-1]))
+        push!(sx, unescape(s[i:end]))
     sx
 end
 
