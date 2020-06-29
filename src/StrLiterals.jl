@@ -4,29 +4,22 @@ Enhanced string literals
 
 String literals with Swift-like format, extendable at run-time
 
-Copyright 2016-2018 Gandalf Software, Inc., Scott P. Jones
+Copyright 2016-2020 Gandalf Software, Inc., Scott P. Jones
 Licensed under MIT License, see LICENSE.md
 """
 module StrLiterals
 
 using ModuleInterfaceTools
 
-const NEW_ITERATE = VERSION >= v"0.7.0-DEV.5127"
-const str_next = @static NEW_ITERATE ? iterate : next
+const str_next = iterate
 const is_empty = isempty
 const is_valid = isvalid
 const is_printable = isprint
 const TypeOrFunc = Union{DataType,Function}
 
-@static if VERSION < v"0.7-"
-    outhex(v, p=1)   = hex(v, p)
-    _sprint(f, s)    = sprint(endof(s), f, s)
-    _sprint(f, s, c) = sprint(endof(s), f, s, c)
-else
-    outhex(v, p=1)   = string(v, base=16, pad=p)
-    _sprint(f, s)    = sprint(f, s; sizehint=lastindex(s))
-    _sprint(f, s, c) = sprint(f, s, c; sizehint=lastindex(s))
-end
+outhex(v, p=1)   = string(v, base=16, pad=p)
+_sprint(f, s)    = sprint(f, s; sizehint=lastindex(s))
+_sprint(f, s, c) = sprint(f, s, c; sizehint=lastindex(s))
 
 @api develop NEW_ITERATE, str_next
 
@@ -37,8 +30,6 @@ end
 @api public "@f_str", "@pr_str", "@F_str", "@PR_str", "@sym_str"
 export @f_str, @pr_str, @F_str, @PR_str, @sym_str
 
-const AbsChar = @static isdefined(Base, :AbstractChar) ? AbstractChar : Char
-
 const parse_chr   = Dict{Char, Function}()
 const interpolate = Dict{Char, Function}()
 const string_type = Ref{TypeOrFunc}(String)
@@ -47,10 +38,9 @@ const SymStr = Union{Symbol, AbstractString}
 
 @api develop throw_arg_err, hexerr, parse_error, check_expr, check_done
 
-str_done(str::AbstractString, pos::Integer) =
-    @static V6_COMPAT ? done(str, pos) : (pos > ncodeunits(str))
+str_done(str::AbstractString, pos::Integer) = (pos > ncodeunits(str))
 
-parse_error(s) = throw(@static V6_COMPAT ? ParseError(s) : Base.Meta.ParseError(s))
+parse_error(s) = throw(Base.Meta.ParseError(s))
 incomplete_expr_error() = parse_error("Incomplete expression")
 check_expr(ex) = isa(ex, Expr) && (ex.head === :continue) && incomplete_expr_error()
 check_done(str, pos, msg) = str_done(str, pos) && parse_error(string(msg, " in ", repr(str)))
@@ -192,7 +182,7 @@ end
 
 s_unescape_string(str::AbstractString) = _sprint(s_print_unescaped, str)
 
-function s_print_escaped(io, str::AbstractString, esc::Union{AbstractString, AbsChar})
+function s_print_escaped(io, str::AbstractString, esc::Union{AbstractString, AbstractChar})
     pos = 1
     while !str_done(str, pos)
         chr, pos = str_next(str, pos)
