@@ -228,6 +228,9 @@ function interpolated_parse_vec(s::AbstractString, unescape::Function, flg::Bool
                 i = j
             elseif haskey(interpolate, c)
                 i = j = interpolate[c](sx, s, unescape, i, j, k)
+            elseif c == '\\'
+                # Move past second backslash
+                c, j = iterate(s, k)
             elseif flg && c == '$'
                 is_empty(s[i:prevind(s, j)]) ||
                     push!(sx, unescape(s[i:prevind(s, j)]))

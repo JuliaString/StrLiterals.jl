@@ -27,6 +27,9 @@ end
 @testset "\$ not interpolation" begin
     @test f"I have $10, $spj$" == "I have \$10, \$spj\$"
 end
+@testset "Double backslash followed by parenthesis isn't treated like interpolation" begin
+    @test f"\\(1)" == "\\(1)"
+end
 @testset "Valid quoted characters" begin
     @test f"\$" == "\$"
     @test f"\"" == "\""
