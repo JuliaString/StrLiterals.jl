@@ -4,7 +4,7 @@ keywords = ["Strings", "Literals"]
 license = "MIT"
 desc = "Adds Swift-style string literal interpolation, extensible framework"
 authors = ["ScottPJones <scottjones@alum.mit.edu>"]
-version = "1.0.2"
+version = "1.1.0"
 
 [deps]
 ModuleInterfaceTools = "5cb8414e-7aab-5a03-a681-351269c074bf"
