@@ -11,7 +11,6 @@ module StrLiterals
 
 using ModuleInterfaceTools
 
-const str_next = iterate
 const is_empty = isempty
 const is_valid = isvalid
 const is_printable = isprint
@@ -20,8 +19,6 @@ const TypeOrFunc = Union{DataType,Function}
 outhex(v, p=1)   = string(v, base=16, pad=p)
 _sprint(f, s)    = sprint(f, s; sizehint=lastindex(s))
 _sprint(f, s, c) = sprint(f, s, c; sizehint=lastindex(s))
-
-@api develop NEW_ITERATE, str_next
 
 @api develop! interpolated_parse, interpolated_parse_vec, s_parse_unicode, s_parse_legacy,
               s_print_unescaped_legacy, s_print_unescaped, s_print_escaped, s_print,
@@ -78,11 +75,11 @@ Handle Unicode character constant, of form \\u{<hexdigits>}
 """
 function s_parse_unicode(io, str,  pos)
     check_done(str, pos, "Incomplete \\u{...}")
-    chr, pos = str_next(str, pos)
+    chr, pos = iterate(str, pos)
     chr != '{' && throw_arg_err("\\u missing opening { in ", str)
     check_done(str, pos, "Incomplete \\u{...}")
     beg = pos
-    chr, pos = str_next(str, pos)
+    chr, pos = iterate(str, pos)
     num::UInt32 = 0
     cnt = 0
     while chr != '}'
@@ -92,7 +89,7 @@ function s_parse_unicode(io, str,  pos)
                               'a' <= chr <= 'f' ? 'a' - 10 :
                               'A' <= chr <= 'F' ? 'A' - 10 :
                               throw_arg_err("\\u missing closing } in ", str))
-        chr, pos = str_next(str, pos)
+        chr, pos = iterate(str, pos)
     end
     cnt == 0 && throw_arg_err("\\u{} has no hex digits in ", str)
     ((0x0d800 <= num <= 0x0dfff) || num > 0x10ffff) &&
@@ -114,9 +111,9 @@ https://github.com/JuliaLang/julia/blob/deab8eabd7089e2699a8f3a9598177b62cbb1733
 function s_print_unescaped(io, str::AbstractString, flg::Bool=false)
     pos = 1
     while !str_done(str, pos)
-        chr, pos = str_next(str, pos)
+        chr, pos = iterate(str, pos)
         if !str_done(str, pos) && chr == '\\'
-            chr, pos = str_next(str, pos)
+            chr, pos = iterate(str, pos)
             if (chr == 'u' ||  chr == 'U' || chr == 'x')
                 if flg
                     pos = s_parse_legacy(io, str, pos, chr)
@@ -163,7 +160,7 @@ function s_parse_legacy(io, str, pos, chr)
     end
     num = cnt = 0
     while (cnt += 1) <= max && !str_done(str, pos)
-        chr, nxt = str_next(str, pos)
+        chr, nxt = iterate(str, pos)
         num = '0' <= chr <= '9' ? num << 4 + chr - '0' :
               'a' <= chr <= 'f' ? num << 4 + chr - 'a' + 10 :
               'A' <= chr <= 'F' ? num << 4 + chr - 'A' + 10 : break
@@ -185,7 +182,7 @@ s_unescape_string(str::AbstractString) = _sprint(s_print_unescaped, str)
 function s_print_escaped(io, str::AbstractString, esc::Union{AbstractString, AbstractChar})
     pos = 1
     while !str_done(str, pos)
-        chr, pos = str_next(str, pos)
+        chr, pos = iterate(str, pos)
         chr == '\0'         ? print(io, "\\0") :
         chr == '\e'         ? print(io, "\\e") :
         chr == '\\'         ? print(io, "\\\\") :
@@ -218,7 +215,7 @@ function interpolated_parse_vec(s::AbstractString, unescape::Function, flg::Bool
     sx = []
     i = j = 1
     while !str_done(s, j)
-        c, k = str_next(s, j)
+        c, k = iterate(s, j)
         if c == '\\' && !str_done(s, k)
             c = s[k]
             if c == '('
@@ -231,12 +228,15 @@ function interpolated_parse_vec(s::AbstractString, unescape::Function, flg::Bool
                 i = j
             elseif haskey(interpolate, c)
                 i = j = interpolate[c](sx, s, unescape, i, j, k)
+            elseif c == '\\'
+                # Move past second backslash
+                c, j = iterate(s, k)
             elseif flg && c == '$'
                 is_empty(s[i:prevind(s, j)]) ||
                     push!(sx, unescape(s[i:prevind(s, j)]))
                 i = k
                 # Move past \\, c should point to '$'
-                c, j = str_next(s, k)
+                c, j = iterate(s, k)
             else
                 j = k
             end
