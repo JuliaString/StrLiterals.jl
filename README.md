@@ -8,15 +8,14 @@
 [release]:      https://img.shields.io/github/release/JuliaString/StrLiterals.jl.svg
 [release-date]: https://img.shields.io/github/release-date/JuliaString/StrLiterals.jl.svg
 
+[checks]:       https://img.shields.io/github/checks-status/JuliaString/StrLiterals.jl/master
+
 [license-img]:  http://img.shields.io/badge/license-MIT-brightgreen.svg?style=flat
 [license-url]:  LICENSE.md
 
 [gitter-img]:   https://badges.gitter.im/Join%20Chat.svg
 [gitter-url]:   https://gitter.im/JuliaString/Lobby?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge
 
-[travis-url]:   https://travis-ci.org/JuliaString/StrLiterals.jl
-[travis-s-img]: https://travis-ci.org/JuliaString/StrLiterals.jl.svg
-[travis-m-img]: https://travis-ci.org/JuliaString/StrLiterals.jl.svg?branch=master
 
 [codecov-url]:  https://codecov.io/gh/JuliaString/StrLiterals.jl
 [codecov-img]:  https://codecov.io/gh/JuliaString/StrLiterals.jl/branch/master/graph/badge.svg
@@ -27,8 +26,8 @@
 
 | **Julia Version** | **Unit Tests** | **Coverage** |
 |:------------------:|:------------------:|:---------------------:|
-| [![][julia-release]][julia-url] | [![][travis-s-img]][travis-url] | [![][codecov-img]][codecov-url]
-| Julia Latest | [![][travis-m-img]][travis-url] | [![][codecov-img]][codecov-url]
+| [![][julia-release]][julia-url] | | [![][codecov-img]][codecov-url]
+| Julia Latest | [![][checks]][pkg-url] | [![][codecov-img]][codecov-url]
 
 The StrLiterals package is an attempt to bring a cleaner string literal syntax to Julia, as well as having an easier way of producing formatted strings, borrowing from both Python and C formatted printing syntax.  It also adds support for using LaTex, Emoji, HTML, or Unicode entity names that are looked up at compile-time.
 This builds on the previous work in StringUtils and StringLiterals, but is based on the new Strs.jl package
